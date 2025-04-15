@@ -1,0 +1,181 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+// Looking for ways to speed up your queries, or scale easily with your serverless or edge functions?
+// Try Prisma Accelerate: https://pris.ly/cli/accelerate-init
+
+generator client {
+  provider = "prisma-client-js"
+  output   = "../generated/prisma"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+model Region {
+  id   String @id @default(uuid())
+  name String
+}
+
+model Sessions {
+  id         String   @id @default(uuid())
+  ip_address String
+  date       DateTime @default(now())
+  device     Json
+  user_id    String
+  user       User     @relation(fields: [user_id], references: [id])
+}
+
+model User {
+  id       String     @id @default(uuid())
+  fullName String
+  phone    String
+  password String
+  role     String
+  isActive Boolean
+  Sessions Sessions[]
+}
+
+model Tool {
+  id             String  @id @default(uuid())
+  name_uz        String
+  name_ru        String
+  name_en        String
+  description_uz String
+  description_ru String
+  description_en String
+  price          Float
+  quantity       Int
+  code           String
+  brand          String
+  isActive       Boolean
+  capacity       String
+  size           String
+  image          String
+}
+
+model Brand {
+  id      String @id @default(uuid())
+  name_uz String
+  name_ru String
+  name_en String
+}
+
+model Size {
+  id      String @id @default(uuid())
+  name_uz String
+  name_ru String
+  name_en String
+}
+
+model Capacity {
+  id      String @id @default(uuid())
+  name_uz String
+  name_ru String
+  name_en String
+}
+
+model Product {
+  id              String  @id @default(uuid())
+  isActive        Boolean
+  name_uz         String
+  name_ru         String
+  name_en         String
+  image           String
+  minWorkingHours Int
+  levels          String
+  price_hourly    Float
+  price_daily     Float
+  tools           String
+}
+
+model Master {
+  id              String  @id @default(uuid())
+  fullName        String
+  phone           String
+  isActive        Boolean
+  year            Int
+  products        String
+  minWorkingHours Int
+  level           String
+  price_hourly    Float
+  price_daily     Float
+  experience      String
+  tools           String
+  image           String
+  passportImage   String
+  star            Float
+  about           String
+}
+
+model Level {
+  id      String @id @default(uuid())
+  name_uz String
+  name_ru String
+  name_en String
+}
+
+model Order {
+  id                String   @id @default(uuid())
+  productInfo       String // JSON: level, count, quantity, tools, measure
+  tools             String // JSON: tool + count
+  total             Float
+  location_lat      Float
+  location_long     Float
+  address           String
+  date              DateTime
+  paymentType       String
+  withDelivery      Boolean
+  status            String
+  commentToDelivery String
+  masters           String // JSON array of master IDs
+}
+
+model Comment {
+  id      String @id @default(uuid())
+  message String
+  stars   Float
+  masters String // JSON array: [{id, star}]
+}
+
+model Contact {
+  id      String @id @default(uuid())
+  name    String
+  surName String
+  phone   String
+  address String
+  message String
+}
+
+model FAQ {
+  id       String @id @default(uuid())
+  question String
+  answer   String
+}
+
+model Basket {
+  id      String @id @default(uuid())
+  content String // JSON: like Order
+}
+
+model Showcase {
+  id             String @id @default(uuid())
+  name_uz        String
+  name_ru        String
+  name_en        String
+  description_uz String
+  description_ru String
+  description_en String
+  image          String
+  link           String
+}
+
+model Partners {
+  id      String @id @default(uuid())
+  name_uz String
+  name_ru String
+  name_en String
+  image   String
+}
