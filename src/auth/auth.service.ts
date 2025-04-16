@@ -21,6 +21,7 @@ import * as bcrypt from 'bcrypt';
 import { JwtService } from '@nestjs/jwt';
 import { Request } from 'express';
 import { totp } from 'otplib';
+import { UserStatus } from '@prisma/client';
 totp.options = { step: 600, digits: 5 };
 
 @Injectable()
@@ -90,7 +91,7 @@ export class AuthService {
         );
       }
 
-      const session = await this.prisma.session.findFirst({
+      const session = await this.prisma.sessions.findFirst({
         where: { ip_address: req.ip, user_id: user.id },
       });
 
@@ -104,7 +105,7 @@ export class AuthService {
           device: {},
         };
 
-        await this.prisma.session.create({
+        await this.prisma.sessions.create({
           data: newSession,
         });
       }
@@ -144,7 +145,7 @@ export class AuthService {
     }
   }
 
-  async activate(activateDto: ActivateDto) {
+  async verify(activateDto: ActivateDto) {
     const { phone, otp } = activateDto;
     try {
       const isValid = totp.check(otp, this.OTPKEY + phone);
@@ -154,7 +155,7 @@ export class AuthService {
 
       await this.prisma.user.update({
         where: { phone },
-        data: { status: true },
+        data: { status: UserStatus.ACTIVE },
       });
 
       return { data: 'Your account has been successfully activated' };
@@ -203,7 +204,7 @@ export class AuthService {
   async logout(req: Request) {
     const user = req['user'];
     try {
-      await this.prisma.session.deleteMany({
+      await this.prisma.sessions.deleteMany({
         where: { ip_address: req.ip, user_id: user.id },
       });
 

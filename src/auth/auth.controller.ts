@@ -66,8 +66,8 @@ export class AuthController {
   }
 
   @Post('verify')
-  activate(@Body() activateDto: ActivateDto) {
-    return this.authService.activate(activateDto);
+  verify(@Body() activateDto: ActivateDto) {
+    return this.authService.verify(activateDto);
   }
 
   @Post('reset-password')

@@ -6,7 +6,6 @@
 
 generator client {
   provider = "prisma-client-js"
-  output   = "../generated/prisma"
 }
 
 datasource db {
@@ -15,8 +14,11 @@ datasource db {
 }
 
 model Region {
-  id   String @id @default(uuid())
-  name String
+  id      String @id @default(uuid())
+  name_uz String
+  name_ru String
+  name_en String
+  User    User[]
 }
 
 model Sessions {
@@ -29,13 +31,15 @@ model Sessions {
 }
 
 model User {
-  id       String     @id @default(uuid())
-  fullName String
-  phone    String
-  password String
-  role     String
-  isActive Boolean
-  Sessions Sessions[]
+  id        String     @id @default(uuid())
+  fullname  String
+  phone     String     @unique
+  password  String
+  region_id String
+  region    Region     @relation(fields: [region_id], references: [id])
+  role      Role
+  status    UserStatus
+  Sessions  Sessions[]
 }
 
 model Tool {
@@ -178,4 +182,39 @@ model Partners {
   name_ru String
   name_en String
   image   String
+}
+
+enum Role {
+  ADMIN
+  SUPER_ADMIN
+  USER
+}
+
+enum Type {
+  PHONE
+  ELECTRONICS
+  LAPTOP
+  ACCESSORIES
+}
+
+enum StatusProduct {
+  ACTIVE
+  INACTIVE
+  PENDING
+}
+
+enum UserStatus {
+  ACTIVE
+  INACTIVE
+}
+
+enum TradeType {
+  FREE
+  PAID
+  BARTER
+}
+
+enum Condition {
+  NEW
+  USED
 }

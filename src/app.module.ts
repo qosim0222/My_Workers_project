@@ -4,12 +4,12 @@ import { AppService } from './app.service';
 import { UploadModule } from './upload/upload.module';
 import { ServeStaticModule } from '@nestjs/serve-static';
 import { join } from 'path';
-import { UserModule } from './user/user.module';
 import { RegionModule } from './region/region.module';
 import { CommentModule } from './comment/comment.module';
 import { AuthModule } from './auth/auth.module';
 import { EskizService } from './eskiz/eskiz.service';
 import { PrismaModule } from './prisma/prisma.module';
+import { UsersModule } from './users/users.module';
 
 @Module({
   imports: [UploadModule,
@@ -17,11 +17,11 @@ import { PrismaModule } from './prisma/prisma.module';
       rootPath:join(__dirname, '..', 'uploads'),
       serveRoot:'/uploads'
     }),
-    UserModule,
     RegionModule,
     CommentModule,
     AuthModule,
     PrismaModule,
+    UsersModule,
   ],
   controllers: [AppController],
   providers: [AppService, EskizService],

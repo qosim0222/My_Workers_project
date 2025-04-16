@@ -1,4 +1,5 @@
 import { ApiProperty } from "@nestjs/swagger";
+import { Role, UserStatus } from "@prisma/client";
 import { IsNotEmpty, IsString, Matches, MaxLength, MinLength } from "class-validator";
 
 export class CreateAuthDto {
@@ -7,16 +8,16 @@ export class CreateAuthDto {
     @IsNotEmpty()
     @MaxLength(32)
     @MinLength(2)
-    full_name: string;
+    fullname: string;
   
-    @ApiProperty({ example: '+998953901313' })
+    @ApiProperty({ example: '+998995931207' })
     @IsString()
     @IsNotEmpty()
     @Matches(/^\+998[0-9]{2}\d{7}$/, {
       message: 'The phone number format must be only: +998901234567.',
     })
     phone: string;
-  
+    
     @ApiProperty({ example: 'root' })
     @IsString()
     @IsNotEmpty()
@@ -32,10 +33,14 @@ export class CreateAuthDto {
     @IsNotEmpty()
     region_id: string;
   
-    @ApiProperty({ example: 'USER_FIZ' })
+    @ApiProperty({ example: 'ADMIN' })
     @IsString()
     @IsNotEmpty()
-    role: 'USER_FIZ' | 'USER_YUR';
+    role:Role ;
+
+    
+  @ApiProperty({ example: 'INACTIVE', required: false })
+  status: UserStatus;
   }
 
 export class LoginAuthDto {
@@ -98,6 +103,3 @@ export class RefreshTokenDto {
   refreshToken: string;
 }
 
-
-
-  
