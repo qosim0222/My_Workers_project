@@ -1,43 +1,8 @@
-// import { Controller, Get, Post, Body, Patch, Param, Delete } from '@nestjs/common';
-// import { AuthService } from './auth.service';
-// import { CreateAuthDto } from './dto/create-auth.dto';
-// import { UpdateAuthDto } from './dto/update-auth.dto';
-
-// @Controller('auth')
-// export class AuthController {
-//   constructor(private readonly authService: AuthService) {}
-
-//   @Post()
-//   create(@Body() createAuthDto: CreateAuthDto) {
-//     return this.authService.create(createAuthDto);
-//   }
-
-//   @Get()
-//   findAll() {
-//     return this.authService.findAll();
-//   }
-
-//   @Get(':id')
-//   findOne(@Param('id') id: string) {
-//     return this.authService.findOne(+id);
-//   }
-
-//   @Patch(':id')
-//   update(@Param('id') id: string, @Body() updateAuthDto: UpdateAuthDto) {
-//     return this.authService.update(+id, updateAuthDto);
-//   }
-
-//   @Delete(':id')
-//   remove(@Param('id') id: string) {
-//     return this.authService.remove(+id);
-//   }
-// }
 
 
-import { Controller, Post, Body, Req, Get } from '@nestjs/common';
+import { Controller, Post, Body, Req, Get, Param, UseGuards, Delete } from '@nestjs/common';
 import { AuthService } from './auth.service';
 import {
-  ActivateDto,
   CreateAuthDto,
   LoginAuthDto,
   RefreshTokenDto,
@@ -45,15 +10,25 @@ import {
   SendOtpDto,
 } from './dto/create-auth.dto';
 import { Request } from 'express';
+import { Roles } from 'src/guards/role.decorator';
+import { AuthGuard } from 'src/guards/auth.guard';
+import { RolesGuard } from 'src/guards/roles.guard';
+import { Role } from '@prisma/client';
+import { RefreshGuard } from 'src/guards/refresh.guard';
 
 @Controller('auth')
 export class AuthController {
-  constructor(private readonly authService: AuthService) {}
+  constructor(private readonly authService: AuthService) { }
 
-  @Post('register')
-  register(@Body() createAuthDto: CreateAuthDto) {
-    return this.authService.register(createAuthDto);
+
+  @Post('register/:otp')
+  register(
+    @Param('otp') otp: string,
+    @Body() createAuthDto: CreateAuthDto,
+  ) {
+    return this.authService.register(createAuthDto, otp);
   }
+
 
   @Post('login')
   login(@Body() loginAuthDto: LoginAuthDto, @Req() req: Request) {
@@ -65,28 +40,39 @@ export class AuthController {
     return this.authService.sendOTP(sendOtpDto);
   }
 
-  @Post('verify')
-  verify(@Body() activateDto: ActivateDto) {
-    return this.authService.verify(activateDto);
-  }
-
   @Post('reset-password')
   resetPassword(@Body() resetPasswordDto: ResetPasswordDto) {
     return this.authService.resetPassword(resetPasswordDto);
   }
 
+  @UseGuards(RefreshGuard)
   @Post('refresh-token')
   refreshToken(@Body() refreshTokenDto: RefreshTokenDto, @Req() req: Request) {
     return this.authService.refreshToken(req);
   }
 
-  @Post('logout')
-  logout(@Req() req: Request) {
-    return this.authService.logout(req);
+  // @UseGuards(AuthGuard)
+  // @Post('logout')
+  // logout(@Req() req: Request) {
+  //   return this.authService.logout(req);
+  // }
+
+  @UseGuards(AuthGuard)
+  @Get('my_data')
+  me(@Req() req: Request) {
+    return this.authService.me_data(req);
   }
 
-  @Get('me')
-  me(@Req() req: Request) {
-    return this.authService.me(req);
+  
+  @UseGuards(AuthGuard)
+  @Get('my_sessions')
+  mysession(@Req() req: Request) {
+    return this.authService.mysession(req);
+  }
+
+  @UseGuards(AuthGuard)
+  @Delete('/delete_sessions/:id')
+  deleteSessions(@Req() req: Request, @Param('id') id: string) {
+    return this.authService.deleteSessions(req, id);
   }
 }

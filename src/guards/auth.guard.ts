@@ -16,7 +16,9 @@ export class AuthGuard implements CanActivate {
       throw new UnauthorizedException("");
     }
     try {
-      let data = this.jwtService.verify(token);
+      let data = this.jwtService.verify(token,{
+         secret: process.env.ACCKEY
+      });
       request['user'] = data;
       return true;
     } catch (error) {

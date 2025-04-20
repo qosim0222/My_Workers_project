@@ -8,7 +8,6 @@ import {
   UnauthorizedException,
 } from '@nestjs/common';
 import {
-  ActivateDto,
   CreateAuthDto,
   LoginAuthDto,
   ResetPasswordDto,
@@ -21,14 +20,13 @@ import * as bcrypt from 'bcrypt';
 import { JwtService } from '@nestjs/jwt';
 import { Request } from 'express';
 import { totp } from 'otplib';
-import { UserStatus } from '@prisma/client';
 totp.options = { step: 600, digits: 5 };
 
 @Injectable()
 export class AuthService {
-  private ACCKEY = process.env.ACCKEY;
-  private REFKEY = process.env.REFKEY;
-  private OTPKEY = process.env.OTPKEY;
+  private ACCKEY = process.env.ACCKEY || "ackes_key";
+  private REFKEY = process.env.REFKEY || "ref_key";
+  private OTPKEY = process.env.OTPKEY || "otp_key"; 
   private deviceDetector = new DeviceDetector();
 
   constructor(
@@ -37,59 +35,70 @@ export class AuthService {
     private jwtServices: JwtService,
   ) {}
 
-  async register(createAuthDto: CreateAuthDto) {
-    const { phone, password, region_id } = createAuthDto;
+  async register(dto: CreateAuthDto, otp: string) {
+    const { phone, password, region_id } = dto;
+
     try {
-      const user = await this.prisma.user.findUnique({ where: { phone } });
-      if (user) {
-        throw new ConflictException('User already exists');
+      const existingUser = await this.prisma.user.findUnique({
+        where: { phone },
+      });
+
+      if (existingUser) {
+        throw new ConflictException('Foydalanuvchi allaqachon mavjud');
       }
 
       const region = await this.prisma.region.findUnique({
         where: { id: region_id },
       });
+
       if (!region) {
-        throw new NotFoundException('Not found region');
+        throw new NotFoundException('Region topilmadi');
       }
 
-      const hashedpassword = await bcrypt.hash(password, 10);
+      const isOtpValid = totp.check(otp, this.OTPKEY + phone);
+      if (!isOtpValid) {
+        throw new BadRequestException("OTP noto'g'ri yoki muddati tugagan");
+      }
+
+      const hashedPassword = await bcrypt.hash(password, 10);
+
       await this.prisma.user.create({
-        data: { ...createAuthDto, password: hashedpassword },
+        data: {
+          ...dto,
+          password: hashedPassword,
+        },
       });
 
-      const otp = totp.generate(this.OTPKEY + phone);
-      // await this.eskizService.sendSMS(otp, phone);
-
       return {
-        otp,
-        data: 'Registration was successful. The code was sent to your phone number, please activate your account',
+        message: 'Registiratsiya muvaffaqiyatli  ✅',
       };
     } catch (error) {
-      if (error instanceof HttpException) {
+      if (error instanceof BadRequestException || error instanceof ConflictException || error instanceof NotFoundException) {
         throw error;
       }
-      throw new BadRequestException(error?.message || 'Something went wrong');
+      throw new BadRequestException(error.message || 'nimadur xato');
     }
   }
+
 
   async login(loginAuthDto: LoginAuthDto, req: Request) {
     const { phone, password } = loginAuthDto;
     try {
       const user = await this.prisma.user.findUnique({ where: { phone } });
       if (!user) {
-        throw new UnauthorizedException('Not found user');
+        throw new UnauthorizedException(' user topilmadi');
       }
 
       const isValid = await bcrypt.compare(password, user.password);
       if (!isValid) {
-        throw new UnauthorizedException('Phone number or password is wrong');
+        throw new UnauthorizedException("Telefon raqami yoki parol noto'g'ri");
       }
 
-      if (!user.status) {
-        throw new ForbiddenException(
-          'Your account is not active, please activate your account',
-        );
-      }
+      // if (!user.status) {
+      //   throw new ForbiddenException(
+      //     'Sizning akkauntingiz faollashtirilmagan, iltimos akkauntingizni faollashtiring',
+      //   );
+      // }
 
       const session = await this.prisma.sessions.findFirst({
         where: { ip_address: req.ip, user_id: user.id },
@@ -110,7 +119,6 @@ export class AuthService {
         });
       }
 
-      console.log(session);
 
       const payload = { id: user.id, role: user.role };
       const accessToken = this.genAccessToken(payload);
@@ -121,49 +129,23 @@ export class AuthService {
       if (error instanceof HttpException) {
         throw error;
       }
-      throw new BadRequestException(error?.message || 'Something went wrong');
+      throw new BadRequestException(error?.message || 'nimadur xato');
     }
   }
 
   async sendOTP(sendOtpDto: SendOtpDto) {
     const { phone } = sendOtpDto;
     try {
-      const user = await this.prisma.user.findUnique({ where: { phone } });
-      if (!user) {
-        throw new UnauthorizedException('Not found user');
-      }
 
       const otp = totp.generate(this.OTPKEY + phone);
       // await this.eskizService.sendSMS(otp, phone)
 
-      return { data: 'OTP sent to your phone number', otp };
+      return { data: 'OTP telefon raqamingizga yuborildi', otp };
     } catch (error) {
       if (error instanceof HttpException) {
         throw error;
       }
-      throw new BadRequestException(error?.message || 'Something went wrong');
-    }
-  }
-
-  async verify(activateDto: ActivateDto) {
-    const { phone, otp } = activateDto;
-    try {
-      const isValid = totp.check(otp, this.OTPKEY + phone);
-      if (!isValid) {
-        throw new UnauthorizedException('OTP code or phone number is wrong');
-      }
-
-      await this.prisma.user.update({
-        where: { phone },
-        data: { status: UserStatus.ACTIVE },
-      });
-
-      return { data: 'Your account has been successfully activated' };
-    } catch (error) {
-      if (error instanceof HttpException) {
-        throw error;
-      }
-      throw new BadRequestException(error?.message || 'Something went wrong');
+      throw new BadRequestException(error?.message || 'nimadur xato');
     }
   }
 
@@ -172,7 +154,7 @@ export class AuthService {
     try {
       const isValid = totp.check(otp, this.OTPKEY + phone);
       if (!isValid) {
-        throw new UnauthorizedException('OTP code or phone number is wrong');
+        throw new UnauthorizedException("OTP yoki telefon raqam noto'g'ri");
       }
 
       const hashedpassword = await bcrypt.hash(newPassword, 10);
@@ -181,12 +163,12 @@ export class AuthService {
         data: { password: hashedpassword },
       });
 
-      return { data: 'Your password updated successfully' };
+      return { data: 'Parolingiz muvaffaqiyatli yangilandi' };
     } catch (error) {
       if (error instanceof HttpException) {
         throw error;
       }
-      throw new BadRequestException(error?.message || 'Something went wrong');
+      throw new BadRequestException(error?.message || 'nimadur xato');
     }
   }
 
@@ -197,37 +179,85 @@ export class AuthService {
 
       return { accessToken };
     } catch (error) {
-      throw new BadRequestException(error?.message || 'Something went wrong');
+      throw new BadRequestException(error?.message || 'nimadur xato');
     }
   }
-
-  async logout(req: Request) {
+  
+  
+  
+  async me_data(req: Request) {
     const user = req['user'];
     try {
-      await this.prisma.sessions.deleteMany({
+      const session = await this.prisma.sessions.findFirst({
         where: { ip_address: req.ip, user_id: user.id },
       });
-
-      return { data: 'Logged out successfully' };
-    } catch (error) {
-      throw new BadRequestException(error?.message || 'Something went wrong');
-    }
-  }
-
-  async me(req: Request) {
-    const user = req['user'];
-    try {
-      const data = this.prisma.user.findUnique({
+      
+      if (!session) {
+        throw new UnauthorizedException();
+      }
+      
+      const data = await this.prisma.user.findUnique({
         where: { id: user.id },
         omit: { password: true },
+        include: {
+          Order: true,
+          Basket: true,
+          region: true,
+          Comment: {
+            include: { MasterRatings: { include: { Master: true } } },
+          },
+        },
       });
-
+      
       return { data };
+    } catch (error) {
+      throw new BadRequestException(error?.message);
+    }
+  }
+  
+  
+  
+  async mysession(req: Request) {
+    const user = req['user'];
+    try {
+      const sessions = await this.prisma.sessions.findMany({
+        where: { user_id: user.id },
+      });
+      
+      return { data: sessions };
     } catch (error) {
       throw new BadRequestException(error?.message || 'Something went wrong');
     }
   }
-
+  
+  
+  async deleteSessions(req: Request, id: string) {
+    try { 
+      const findSession = await this.prisma.sessions.findFirst({
+        where: { id }, 
+      });
+      if (!findSession) throw new NotFoundException('Session not found ❗');
+      
+      await this.prisma.sessions.delete({ where: { id } });
+      return { message: 'Session is successfully deleted ✅' };
+    } catch (error) {
+      throw new BadRequestException(error.message);
+    }
+  }
+  
+    // async logout(req: Request) {
+    //   const user = req['user'];
+    //   try {
+    //     await this.prisma.sessions.deleteMany({
+    //       where: { ip_address: req.ip, user_id: user.id },
+    //     });
+  
+    //     return { data: 'Muvaffaqiyatli ravishda tizimdan chiqdingiz' };
+    //   } catch (error) {
+    //     throw new BadRequestException(error?.message || 'nimadur xato');
+    //   }
+    // }
+  
   genAccessToken(payload: any) {
     return this.jwtServices.sign(payload, {
       secret: this.ACCKEY,
@@ -238,7 +268,10 @@ export class AuthService {
   genRefreshToken(payload: any) {
     return this.jwtServices.sign(payload, {
       secret: this.REFKEY,
-      expiresIn: '7d',
+      expiresIn: '5d',
     });
   }
-}
+
+  
+  
+} 

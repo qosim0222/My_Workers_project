@@ -21,7 +21,8 @@ export class RefreshGuard implements CanActivate {
     }
 
     try {
-      let data = this.jwt.verify(token, { secret: 'refresh_key' });
+      let data = this.jwt.verify(token, {
+         secret: process.env.REFKEY });
       request['user'] = data;
       return true;
     } catch (error) {
