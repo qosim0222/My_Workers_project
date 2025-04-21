@@ -34,7 +34,7 @@ export class RegionService {
 
   async findAll() {
     try {
-      let data = await this.prisma.region.findMany({include:{User:true}});
+      let data = await this.prisma.region.findMany();
 
       // if (!data.length) {
       //   throw new NotFoundException(' regions empty ');
