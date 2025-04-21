@@ -16,7 +16,7 @@ import { TgBotService } from 'src/tg_bot/tg_bot.service';
 @Injectable()
 export class OrderService {
   constructor(private readonly prisma: PrismaService,
-    private readonly tgBotervice: TgBotService
+    // private readonly tgBotervice: TgBotService
 
   ) { }
 
