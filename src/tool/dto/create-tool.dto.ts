@@ -2,14 +2,13 @@ import { IsNotEmpty, IsOptional, IsString, IsNumber, IsInt, IsBoolean, Matches }
 import { ApiProperty } from '@nestjs/swagger';
 
 export class CreateToolDto {
-  // Asbob nomi (o'zbekcha)
-  @ApiProperty({ description: 'O‘zbek tilidagi nomi', example: 'Drill' })
+  @ApiProperty({ description: 'O‘zbek tilidagi nomi', example: 'klyuch' })
   @IsNotEmpty({ message: 'nameUz bo‘sh bo‘lmasligi kerak' })
   @IsString({ message: 'nameUz matn bo‘lishi kerak' })
   nameUz: string;
 
   // Asbob nomi (ruscha) - ixtiyoriy
-  @ApiProperty({ description: 'Rus tilidagi nomi', example: 'Дрель', required: false })
+  @ApiProperty({ description: 'Rus tilidagi nomi', example: 'kluch', required: false })
   @IsOptional()
   @IsString({ message: 'nameRu matn bo‘lishi kerak' })
   @Matches(/^[А-Яа-яЁё0-9\s.,'"“”‘’!?()\-–—]+$/, {
@@ -18,25 +17,25 @@ export class CreateToolDto {
   nameRu?: string;
 
   // Asbob nomi (inglizcha) - ixtiyoriy
-  @ApiProperty({ description: 'Ingliz tilidagi nomi', example: 'Drill', required: false })
+  @ApiProperty({ description: 'Ingliz tilidagi nomi', example: 'kluch', required: false })
   @IsOptional()
   @IsString({ message: 'nameEn matn bo‘lishi kerak' })
   nameEn?: string;
 
   // Asbob tavsifi (o'zbekcha)
-  @ApiProperty({ description: 'O‘zbek tilidagi tavsifi', example: 'Elektron burg‘ulash asbobi' })
+  @ApiProperty({ description: 'O‘zbek tilidagi tavsifi', example: 'yechadi' })
   @IsNotEmpty({ message: 'descriptionUz bo‘sh bo‘lmasligi kerak' })
   @IsString({ message: 'descriptionUz matn bo‘lishi kerak' })
   descriptionUz: string;
 
   // Tavsif (ruscha) - ixtiyoriy
-  @ApiProperty({ description: 'Rus tilidagi tavsifi', example: 'Электронная дрель', required: false })
+  @ApiProperty({ description: 'Rus tilidagi tavsifi', example: 'yechadi', required: false })
   @IsOptional()
   @IsString({ message: 'descriptionRu matn bo‘lishi kerak' })
   descriptionRu?: string;
 
   // Tavsif (inglizcha) - ixtiyoriy
-  @ApiProperty({ description: 'Ingliz tilidagi tavsifi', example: 'Electronic drilling tool', required: false })
+  @ApiProperty({ description: 'Ingliz tilidagi tavsifi', example: 'yechadi', required: false })
   @IsOptional()
   @IsString({ message: 'descriptionEn matn bo‘lishi kerak' })
   descriptionEn?: string;
@@ -70,7 +69,11 @@ export class CreateToolDto {
   @IsOptional()
   @IsString({ message: 'sizeId matn bo‘lishi kerak' })
   sizeId?: string;
-
+  
+  @ApiProperty({ description: 'Sig‘im (capacity) ID', example: 'uuid-string' })
+  @IsString({ message: 'capacityId matn bo‘lishi kerak' })
+  @IsOptional()
+  capacityId?: string;
   // Rasm nomi
   @ApiProperty({ description: 'Rasm fayl nomi', example: 'drill.jpg' })
   @IsNotEmpty({ message: 'img bo‘sh bo‘lmasligi kerak' })
@@ -83,8 +86,4 @@ export class CreateToolDto {
   @IsBoolean({ message: 'isAvailable boolean (true/false) bo‘lishi kerak' })
   isAvailable?: boolean;
 
-  @ApiProperty({ description: 'Sig‘im (capacity) ID', example: 'uuid-string' })
-  @IsString({ message: 'capacityId matn bo‘lishi kerak' })
-  @IsOptional()
-  capacityId?: string;
 }

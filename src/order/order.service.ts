@@ -11,10 +11,12 @@ import { UpdateOrderDto } from './dto/update-order.dto';
 import * as fs from 'fs/promises';
 import * as path from 'path';
 import { Role } from '@prisma/client';
+import { TgBotService } from 'src/tg_bot/tg_bot.service';
 
 @Injectable()
 export class OrderService {
   constructor(private readonly prisma: PrismaService,
+    private readonly tgBotervice: TgBotService
 
   ) { }
 

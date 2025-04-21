@@ -37,7 +37,7 @@ export class ToolController {
   @ApiBearerAuth()
   @ApiQuery({ name: 'page', required: false, example: 1 })
   @ApiQuery({ name: 'limit', required: false, example: 10 })
-  @ApiQuery({ name: 'search', required: false, example: 'drill' })
+  @ApiQuery({ name: 'search', required: false, })
   @ApiQuery({ name: 'sortBy', required: false, example: 'price' })
   @ApiQuery({ name: 'sortOrder', required: false, example: 'asc' })
   findAll(@Query() query) {

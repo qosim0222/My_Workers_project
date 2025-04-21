@@ -26,6 +26,7 @@ import { LevelModule } from './level/level.module';
 import { BasketModule } from './basket/basket.module';
 import { ToolModule } from './tool/tool.module';
 import { ProfessionModule } from './profession/profession.module';
+import { TgBotModule } from './tg_bot/tg_bot.module';
 
 @Module({
   imports: [  ConfigModule.forRoot({isGlobal:true}),UploadModule,
@@ -53,6 +54,7 @@ import { ProfessionModule } from './profession/profession.module';
     BasketModule,
     ToolModule,
     ProfessionModule,
+    TgBotModule,
   ],
   controllers: [AppController],
   providers: [AppService, EskizService],

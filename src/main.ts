@@ -10,7 +10,7 @@ async function bootstrap() {
 
   const config = new DocumentBuilder()
   .setTitle('My workers')
-  .setDescription('The cats API description')
+  .setDescription('The workers API description')
   .setVersion('1.0')
   .addSecurityRequirements("bearer",["bearer"])
   .addBearerAuth()

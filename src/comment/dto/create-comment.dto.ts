@@ -22,7 +22,7 @@ export class CreateCommentDto {
   @IsNotEmpty()
   order_id: string;
 
-  @ApiProperty({ example: [{ star: 4.5, master_id: '45dasa46s56s4a5' }] })
+  @ApiProperty({ example: [{ star: 2, master_id: '45dasa46s56s4a5' }] })
   @IsArray()
   @ArrayNotEmpty()
   @ValidateNested({ each: true })
